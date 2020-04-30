@@ -12,19 +12,101 @@ or to used as a baseline for profiling and optimization.
 """
 
 import brain
+from lazy_brain import LazyBrain
+from non_lazy_brain import NonLazyBrain
 import brain_util as bu
 import logging
 import numpy as np
 import random
 import copy
 import matplotlib.pyplot as plt
-
 from collections import OrderedDict
 
 
-def project_sim(n=1000000, k=1000, p=0.01, beta=0.05, t=50):
+def get_default_brain_params(n=10000, k=100, p=0.01, beta=0.05):
+    b = NonLazyBrain(p)
+    return n, k, p, beta, b
+
+
+def check_hypotheses():
+    n, k, p, beta, b = get_default_brain_params()
+    print(f'Initialize parameters to n={n}, k={k}, p={p}, beta={beta}')
+
+    # =========================================================================
+    # newly started area with recurrent connections does not create an assembly
+    # =========================================================================
+    print('Checking a single area recurrent projection.\nRunning 100 iterations. ')
+    b.add_area("A", n, k, beta)
+    for _ in range(10):
+        b.project({}, {"A": ["A"]})
+    print('Completed 10/100')
+    for _ in range(40):
+        b.project({}, {"A": ["A"]})
+    print('Completed 50/100')
+    for _ in range(50):
+        b.project({}, {"A": ["A"]})
+    A = b.areas["A"]
+    print(f'Expect the support to be huge. Got {A.support_size}, which is {A.support_size/k}% of k*100')
+    print(f'Expect number of new winners to be about k*(A.support_size/n)={k*(A.support_size/n)}. '
+          f'Got {A.num_first_winners}')
+    max_weight = np.max(b.connectomes['A']['A'])
+    print(f'Expect maximum weight to be low. Got {max_weight}, which is (1+beta)^'
+          f'{int(np.round(np.log(max_weight)/np.log(1+beta)))}')
+
+    # ==================================================================
+    # Constant stimulus input with recurrent connection creates assembly
+    # ==================================================================
+    print('\nChecking a single stimulus to area with recurrent projection.')
+    iters = 25
+    print(f'Running {iters} iterations. ')
+    b.add_stimulus("stimB", k)
+    b.add_area("B", n, k, beta)
+    B = b.areas["B"]
+    for i in range(iters - 5):
+        b.project({"stimB": ["B"]}, {"B": ["B"]})
+        if i % 5 == 4:
+            print(f'After {i} iterations, support size is {B.support_size}')
+    winner_list = [set(B.winners)]
+
+    print(f'In iterations {iters-5},...,{iters} the assembly has converged.')
+    for _ in range(5):
+        b.project({"stimB": ["B"]}, {"B": ["B"]})
+        winner_list += [set(B.winners)]
+    diff_arr = [[len(wi - wj) for wj in winner_list] for wi in winner_list]
+
+    print(f'The matrix of set-differences between it\'s winners in the last 5 iterations is:')
+    for row in diff_arr:
+        print(row, sep=' ')
+
+    # =========================================================================================
+    # A new, second, assembly is randomly generated.
+    # It should be independent of the first, considering that their overlap is initially small.
+    # =========================================================================================
+    print('\nTesting independence of new assembly on the previous')
+    b.add_stimulus('stimB2', k)
+    winners_stimB = set(B.winners)
+    b.project({'stimB2': ['B']}, {}) # Now B's winners are random
+    winners_stimB2 = set(B.winners)
+    print(f'After a single project from a new stimulus we should have completely random set of winners.')
+    print(f'Indeed, the new set of winners intersects the old in only '
+          f'{len(winners_stimB.intersection(winners_stimB2))} neurons.')
+    for _ in range(iters):
+        b.project({'stimB2': ['B']}, {'B': ['B']})
+    print(f'After {iters} iterations of projection from new stimulus including recurrent connections.')
+    intersection_size = len(set(B.winners).intersection(winners_stimB))
+    print(f'The size of the intersection between the new assembly and the previous is {intersection_size}.')
+    print(f'The size of the intersection between the new assembly and the new stimulus original winners is '
+          f'{len(set(B.winners).intersection(winners_stimB2))}.')
+
+
+
+def project_sim(n=1000000, k=1000, p=0.01, beta=0.05, t=50, lazy=True):
+    if lazy:
+        brain_class = LazyBrain
+    else:
+        brain_class = NonLazyBrain
     logging.basicConfig(level=logging.INFO)
-    b = brain.Brain(p)
+    b = brain_class(p)
     b.add_stimulus("stim", k)
     b.add_area("A", n, k, beta)
     area_a: brain.Area = b.areas["A"]
