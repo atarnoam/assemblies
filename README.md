@@ -1,11 +1,9 @@
-![build status](https://travis-ci.org/BrainProjectTau/Brain.svg?branch=master)
-![coverage](https://codecov.io/gh/BrainProjectTau/Brain/master/graph/badge.svg)
 ## Installation
 
 1. Clone the repository and enter it:
 
     ```sh
-    $ git clone git@github.com:BrainProjectTau/Brain.git
+    $ git clone git@github.com:BrainProjectTau/Brain.git #TODO: change the url to the proper one
     ...
     $ cd Brain/
     ```
@@ -21,7 +19,6 @@
 
 3. To check that everything is working as expected, run the tests:
 
-
     ```sh
     $ pytest tests/
     ...
@@ -30,58 +27,72 @@
 ## Usage
 
 The `Brain` packages provides the following classes:
-    
+
 - `Area`
+    
+    This class represents a general Area which can be binded to use to a specific brain.
 
-    This class represents an Area in the brain.
+    - `Basic Usage` 
+        ```python
+        >>> from Brain import Area
+        >>> amigdala = Area(beta = 0.1, n = 10 ** 7, k = 10 ** 4)
+        ```
 
-    ```pycon
-    >>> from Brain import Area
-    >>> area = Area(beta = 0.1, n = 10 ** 7, k = 10 ** 4)
+
+- `Connectome`
+    
+    This class represents a simulated connectome which holds the areas, stimuli, and all the synapse weights.
+    
+    ```python
+    >>> from Brain import NonLazyConnectome, LazyConnectome
+    >>> amigdala = Area(...)
+    >>> hippocampus = Area(...)
+    >>> connectome1 = NonLazyconnectome()
+    >>> connectome1.add_area(amigdala)
+    >>> connectome1.add_area(hippocampus)
+    >>> connectome2 = LazyConnectome()
+    >>> connectome2.add_area(amigdala)
+    >>> connectome2.add_area(hippocampus)
+    >>> connectome1.enable(amigdala, hippocampus)
+    >>> connectome2.enable(amigdala, hippocampus)
+    >>> connectome1.next_round({...}) 
+    >>> connectome2.next_round({...}) # Doesn't affect each other
+    >>> connectome1.winners(amigdala) # Return connectome1's winners in the amigdala
+    ... [...]
+    >>> connectome2.winners(amigdala) # Return connectome2's winners in the amigdala
+    >>> [...] 
     ```
+
+    - `Full API`
+        - `Connectome.add_area(area: Area)`
+            Add an Area to the Connectome.
+
+        - `Connectome.add_stimulus(stimulus: Stimulus)`
+            Add a Stimulus to the Connectome.
+
+        - `Connectome.enable(source: BrainPart, dest: BrainPart)`
+            Enables a connection between 2 BrainParts in the Connectome.
+
+        - `Connectome.enable(source: BrainPart, dest: BrainPart)`
+            Disables a connection between 2 BrainParts in the Connectome.
+
+        -  `Connectome.next_round(subconnectome: Connectome = None)`
+            Calculate the next set of winners. If subconnectome is mentioned calculates only in it.
+
+        - `Connectome.winners(area: Area)`
+            Return the winners in a Area.
+
+
 
 - `Assembly`
     
     This class represents an Assembly in the brain.
     
-- `Connectome`
-    
-    Sub-package which holds the structre of the brain.
-    The sub-package defines the following classes:
-    
-    - `Connectome`
-        Abstract class which defines the API which a general connectome should have.
-        This class should be inhereted and implemented.
-        
-        ```pycon
-        >>> from Connectome import Connectome
-        >>> class LazyConnectome(Connectome):
-        >>>     #implementation of a specific connectome
-        >>>> connectome = LazyConnectome()
-        >>> area = Area(beta = 0.1, n = 10 ** 7, k = 10 ** 4)
-        >>> connectome.add_area(area)
-        ```
-    - `NonLazyRandomConnectome` 
-        Already implemented Connectome which by decides it's edge by chance.
-        This Connectome doesn't use any kind of laziness.
-       
-       ```pycon
-        >>> from Connectome import NonLazyRandomConnectome
-        >>>> connectome = NonLazyRandomConnectome()
-        >>> area = Area(beta = 0.1, n = 10 ** 7, k = 10 ** 4)
-        >>> connectome.add_area(area)
-        ```
-    - `To be continued`
-        More ways to implement a connectome can be applied simply by inhereting from Connectome and implementing it's API.
-    
-- `Brain`
 
-    This class represents a simulated brain, with it's connectome which holds the areas, stimuli, and all the synapse weights.
+```
+To Do:
+1. Rename connectome to brain and inform other groups.
+(includes changing the names of the classes)
+2. Let assemblies and learning describe their APIs and fix them into the document accordingly.
 
-    ```pycon
-    >>> from Brain import Brain, NonLazyRandomConnectome, Area
-    >>> connectome = NonLazyRandomConnectome()
-    >>> area = Area(beta = 0.1, n = 10 ** 7, k = 10 ** 4)
-    >>> connectome.add_area(area)
-    >>> brain = Brain(connectome)
-    ```
+``` ```
