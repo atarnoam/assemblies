@@ -1,3 +1,5 @@
+import gc
+
 import numpy as np
 
 from assembly_calculus.brain.performance.multithreaded import multithreaded
@@ -9,6 +11,8 @@ Multithreaded tests
 -------------------
 These tests check the multithreaded decorator, using a simple usage of them.
 """
+
+gc.collect()
 
 
 @multithreaded

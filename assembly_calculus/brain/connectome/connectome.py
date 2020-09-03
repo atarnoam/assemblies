@@ -73,7 +73,7 @@ class Connectome(AbstractConnectome):
         connection = self.connections[source, area]
         beta = connection.beta
         source_neurons: Iterable[int] = \
-            range(source.n) if isinstance(source, Stimulus) else self.winners[source]
+            range(source.n) if isinstance(source, Stimulus) else self._winners[source]
         # Note that this uses numpy vectorization to multiply a whole matrix by a scalar.
         connection.synapses[source_neurons, new_winners[area][:, None]] *= (1 + beta)
 
@@ -97,7 +97,7 @@ class Connectome(AbstractConnectome):
         """
         to_update = sources.keys()
         for area in to_update:
-            self.winners[area] = new_winners[area]
+            self._winners[area] = new_winners[area]
             self.support[area].update(new_winners[area])
 
     def _fire_into(self, area: Area, sources: List[BrainPart]) -> np.ndarray:
@@ -118,7 +118,7 @@ class Connectome(AbstractConnectome):
         prev_winner_inputs: ndarray = np.zeros(area.n)
         for source in src_areas:
             area_connectome = self.connections[source, area]
-            prev_winner_inputs += sum((area_connectome.synapses[winner, :] for winner in self.winners[source]))
+            prev_winner_inputs += sum((area_connectome.synapses[winner, :] for winner in self._winners[source]))
         if src_stimuli:
             prev_winner_inputs += sum(self.connections[stim, area].synapses.sum(axis=0) for stim in src_stimuli)
         return np.argpartition(prev_winner_inputs, area.n - area.k)[-area.k:]

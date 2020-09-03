@@ -3,9 +3,11 @@ from __future__ import annotations  # import annotations from later version of p
 
 from collections import defaultdict
 from abc import ABCMeta, abstractmethod
-from typing import Dict, List, Tuple, Optional, TypeVar, Mapping, Generic, Callable, Any, Set
+from dataclasses import dataclass
+from typing import Dict, List, Tuple, Optional, TypeVar, Mapping, Generic, Callable, Any, Set, Iterable, Iterator
+import numpy as np
 
-from wrapt import ObjectProxy  # Needed to pip install
+#from wrapt import ObjectProxy  # Needed to pip install
 
 from assembly_calculus.brain.components import BrainPart, Area, Stimulus, Connection
 
@@ -14,6 +16,25 @@ from assembly_calculus.brain.components import BrainPart, Area, Stimulus, Connec
 # using. It's very convenient to use (it can be used exactly in the same way).
 # More info and examples:
 # https://wrapt.readthedocs.io/en/latest/wrappers.html
+
+@dataclass(frozen=True)
+class NDArraySetMappingProxy(Mapping[Area, Set[int]]):
+    proxied: Dict[Area, np.ndarray]
+
+    def __getitem__(self, item: Area) -> Set[int]:
+        return set(self.proxied[item])
+
+    def __setitem__(self, key: Area, value: Iterable[int]):
+        value = set(value if value is not None else [])
+        if len(value) != key.k and len(value) != 0:
+            raise ValueError('Invalid number of winners!')
+        self.proxied[key] = np.asarray(list(value), dtype=int)
+
+    def __len__(self) -> int:
+        return len(self.proxied)
+
+    def __iter__(self) -> Iterator[Area]:
+        return iter(self.proxied)
 
 
 class AbstractConnectome(metaclass=ABCMeta):
@@ -36,7 +57,7 @@ class AbstractConnectome(metaclass=ABCMeta):
     def __init__(self, p, areas=None, stimuli=None):
         self.areas: List[Area] = []
         self.stimuli: List[Stimulus] = []
-        self.winners: Dict[Area, List[int]] = defaultdict(lambda: [])
+        self._winners: Dict[Area, np.ndarray] = defaultdict(lambda: np.ndarray(shape=(0,), dtype=int))
         self.support: Dict[Area, Set[int]] = defaultdict(lambda: set())
         self.connections: Dict[Tuple[BrainPart, Area], Connection] = {}
         self.p = p
@@ -68,6 +89,10 @@ class AbstractConnectome(metaclass=ABCMeta):
     @plasticity_disabled.setter
     def plasticity_disabled(self, value):
         self._plasticity_disabled = value
+
+    @property
+    def winners(self) -> Mapping[Area, Set[int]]:
+        return NDArraySetMappingProxy(self._winners)
 
     @abstractmethod
     def get_sources(self, area: Area) -> List[BrainPart]:

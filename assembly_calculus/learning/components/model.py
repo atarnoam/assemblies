@@ -87,7 +87,7 @@ class LearningModel:
         self._validate_input_number(input_number)
 
         self._run_sequence(input_number, enable_plasticity=False)
-        return self._brain.winners[self.output_area]
+        return self._brain.winners[self.output_area].pop()
 
     def _run_sequence(self, input_number: int, number_of_sequence_cycles=1, *, enable_plasticity: bool = True,
                       desired_output: Dict[OutputArea, List[int]] = None) -> None:

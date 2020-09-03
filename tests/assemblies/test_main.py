@@ -8,8 +8,8 @@ from assembly_calculus.utils.brain_utils import _construct_firing_order
 CERTAINTY_REPEAT = 25
 EFFECTIVE_REPEAT = 3
 
-if environ.get('PROTECC_MY_RAM', True):
-    protecc_ram(0.75)
+if environ.get('PROTECC_MY_RAM', False):
+    protecc_ram(0.90)
 
 
 # TODO4: remove code duplication inside tests. reuse code using methods. test code should be treated as regular code :)

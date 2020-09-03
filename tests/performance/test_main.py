@@ -1,3 +1,4 @@
+import gc
 
 import pytest
 
@@ -9,6 +10,8 @@ EPSILON = 0.001
 BASIC_BETA = 0.1
 STANDARD_SIZES = [(5000, 71), (1250, 35), (3750, 61), (2500, 50)]
 SMALL_SIZES = [(4, 2), (9, 3), (16, 4), (25, 5)]
+
+gc.collect()
 
 
 def assert_plasticity(conn, source, dest):
@@ -85,7 +88,7 @@ def simple_conn():
 def test_fire_winners():
     conn, a, b, s = simple_conn()
     conn.fire({s: [a], a: [b]})
-    assert conn.winners[a] == [0]
+    assert conn.winners[a] == {0}
 
 
 def test_fire_connectomes():

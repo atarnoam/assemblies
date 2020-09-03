@@ -6,6 +6,7 @@ from assembly_calculus.learning.components.data_set.constructors import create_t
 from assembly_calculus.learning.components.input import InputStimuli
 from assembly_calculus.learning.components.model import LearningModel
 from assembly_calculus.learning.components.sequence import LearningSequence
+from assembly_calculus.utils import protecc_ram
 
 
 def my_example_simulation():
@@ -111,4 +112,5 @@ def my_example_simulation():
 
 
 if __name__ == '__main__':
+    protecc_ram(0.75)
     my_example_simulation()
