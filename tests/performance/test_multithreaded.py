@@ -48,11 +48,11 @@ P = 0.4
 EPSILON = 0.01
 
 
-def expectation(a):
+def expectation(a: np.ndarray):
     return np.sum(a) / a.size
 
 
-def cov(a, b):
+def cov(a: np.ndarray, b: np.ndarray):
     return expectation(a * b) - expectation(a) * expectation(b)
 
 

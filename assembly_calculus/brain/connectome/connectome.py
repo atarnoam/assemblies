@@ -7,7 +7,6 @@ from assembly_calculus.brain.components import Area, BrainPart, Stimulus, Connec
 from assembly_calculus.brain.connectome.abstract_connectome import AbstractConnectome
 from assembly_calculus.brain.performance import RandomMatrix
 
-# TODO: change new_winners type to ndarray, make winners private
 
 class Connectome(AbstractConnectome):
     """
@@ -61,8 +60,7 @@ class Connectome(AbstractConnectome):
         """ Get sources to area """
         return [source for source, dest in self.connections if dest == area]
 
-
-    def _update_connection(self, source: BrainPart, area: Area, new_winners: Dict[Area, List[int]]) -> None:
+    def _update_connection(self, source: BrainPart, area: Area, new_winners: Dict[Area, ndarray]) -> None:
         """
         Update one connection (based on the plasticity).
         A helper function for update_connectomes.
@@ -77,7 +75,7 @@ class Connectome(AbstractConnectome):
         # Note that this uses numpy vectorization to multiply a whole matrix by a scalar.
         connection.synapses[source_neurons, new_winners[area][:, None]] *= (1 + beta)
 
-    def update_connectomes(self, new_winners: Dict[Area, List[int]], sources: Dict[Area, List[BrainPart]]) -> None:
+    def update_connectomes(self, new_winners: Dict[Area, ndarray], sources: Dict[Area, List[BrainPart]]) -> None:
         """
         Update the connectomes of the areas with new winners, based on the plasticity.
         :param new_winners: the new winners per area
@@ -89,7 +87,7 @@ class Connectome(AbstractConnectome):
             for source in sources[area]:
                 self._update_connection(source, area, new_winners)
 
-    def update_winners(self, new_winners: Dict[Area, List[int]], sources: Dict[Area, List[BrainPart]]) -> None:
+    def update_winners(self, new_winners: Dict[Area, ndarray], sources: Dict[Area, List[BrainPart]]) -> None:
         """
         Update the winners of areas with new winners.
         :param new_winners: the new winners per area

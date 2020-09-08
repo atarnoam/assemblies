@@ -5,7 +5,6 @@ import pytest
 from assembly_calculus.brain import *
 from assembly_calculus.brain.connectome import *
 
-
 EPSILON = 0.001
 BASIC_BETA = 0.1
 STANDARD_SIZES = [(5000, 71), (1250, 35), (3750, 61), (2500, 50)]
